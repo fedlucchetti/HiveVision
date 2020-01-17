@@ -1,0 +1,51 @@
+version: '2'
+
+services:
+ web:
+   restart: always
+   build: ./app
+   expose:
+     - "8000"
+   volumes:
+     - /usr/src/app/project/static
+   command: /usr/local/bin/gunicorn -w 2 -b :8000 run_server:app
+   depends_on:
+     - redis
+     - mongo
+
+ redis:
+   restart: always
+   image: redis:latest
+   expose:
+      - "6379"
+   command: redis-server --appendonly yes
+   volumes:
+      - /redisstore:/data
+
+ mongo:
+    image: mongo:latest
+    expose:
+      - "27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=teststore
+      - MONGO_INITDB_ROOT_PASSWORD=passwd
+    volumes:
+      - /mongostore:/datamongo'
+
+ nginx:
+   restart: always
+   build: ./nginx
+   ports:
+     - "80:80"
+   volumes:
+     - /www/static
+   volumes_from:
+     - web
+   depends_on:
+     - web
+
+volumes:
+  redisstore:
+    driver: local
+  mongostore:
+    driver: local

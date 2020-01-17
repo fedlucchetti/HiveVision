@@ -1,0 +1,4 @@
+- hosts: all
+  strategy: debug
+  tasks:
+    - include_tasks: ans_deploy.yml

@@ -1,0 +1,67 @@
+---
+- name: register whoami
+  command: whoami
+  register: whoami
+
+- name: Install docker apt key
+  apt_key:
+    keyserver: hkp://keyserver.ubuntu.com:80
+    id: F76221572C52609D
+
+- name: Install docker repo
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+
+- name: "FIX: Ubuntu 16.04 LTS doesn't come with certain modules, required by ansible"
+  raw: apt-get install python-minimal aptitude -y
+  become: true
+  become_user: root
+  become_method: sudo
+
+- name: Update APT package cache and upgrade
+  become: True
+  apt:
+    update_cache: yes
+
+
+- name: Install latest version of "docker" ignoring "install-recommends"
+  become: True
+  apt:
+    name: "{{ item.name }}"
+    state: latest
+    install_recommends: no
+  with_items:
+    - { name: 'linux-image-extra-4.4.0-57-generic' }
+    - { name: 'linux-image-extra-virtual' }
+    - { name: 'docker-ce' }
+    - { name: 'python-setuptools' }
+    - { name: 'python-pkg-resources' }
+    - { name: 'python-pip' }
+
+- name: Upgrade pip
+  pip:
+    name: pip
+    extra_args: --upgrade
+
+- name: Install docker-compose
+  become: true
+  pip:
+    name: docker-compose
+
+- name: Clone that git
+  become: true
+  git:
+    repo: https://github.com/maxabernathy/vision
+    dest: "/home/{{whoami.stdout}}/vision"
+
+- name: Changing perm of stopremove.sh
+  become: true
+  file:
+    dest: "/home/{{whoami.stdout}}/vision/deploy/stopremove.sh"
+    mode: 0755
+
+- name: run docker-compose and launch
+  become: yes
+  shell: docker-compose build && docker-compose up -d
+  args:
+    chdir: "/home/{{whoami.stdout}}/vision"
