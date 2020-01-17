@@ -1,4 +1,4 @@
-# vision
+# HiveVision
 
 The goal is to provide an API service that is ready to deploy on an almost fresh VM, ssh, firewall, user config, excepted for now. Ansible deploys the webapp to the server, and launches the containers via docker-compose. Routes provided are experimental for now as development was focused on the deployment and running of the service itself.
 
